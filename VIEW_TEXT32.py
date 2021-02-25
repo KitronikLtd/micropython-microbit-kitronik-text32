@@ -17,10 +17,13 @@ class KitronikText32:
      #set buf with setup commands, turn on display, clear display and make ready for commands
      buf = bytearray([self.FUNCTION_SET1_CMD, self.DISPLAY_ON, self.CLEAR_DISPLAY, 0x06])
      #set the spi pins and frequency
-     spi.init(baudrate=250000, bits=8, mode=0, sclk=pin13, mosi=pin15, miso=pin14)
+     pin14.write_digital(0)
+     spi.init(baudrate=230000, bits=8, mode=0, sclk=pin13, mosi=pin15, miso=pin12)
+     pin14.write_digital(1)
      sleep(1000)
      #send setup to the LCD
      spi.write(buf)
+     print('startup')
      self.initalised = True
 
     def clearScreen(self):
@@ -45,11 +48,11 @@ class KitronikText32:
      #Send command byte and set how many bytes are being sent
      buf = bytearray([self.FUNCTION_SET2_CMD, 0x8F])
      spi.write(buf)
-     #send the display bytes to the LCD
-     for textLoop in range (16):
-      asciiNumber = text[textLoop]
-      buf = bytearray([ord(asciiNumber)])
-      spi.write(buf)
+     #send all string letters into byte array as int to send all together
+     buf = bytearray([ord(text[0]),ord(text[1]),ord(text[2]),ord(text[3]),ord(text[4]),ord(text[5]),ord(text[6]),ord(text[7]),ord(text[8]),ord(text[9]),ord(text[10]),ord(text[11]),ord(text[12]),ord(text[13]),ord(text[14]),ord(text[15])])
+     #print(buf)
+     spi.write(buf)
+      
 
     def showString(self, text):
      if self.initalised is False:
@@ -82,11 +85,12 @@ class KitronikText32:
           numberOfStrings = numberOfStrings + 1
           lcdString = singleWords[textLoop] + ' '
           screenLine = len(lcdString)
+          currentScreenLineLength = 0
 
      screenLine = 0
      textLoop = 0
      # if updating single line, show current string on line and next line
-     self.clearScreen(self)
+     #self.clearScreen(self)
      if numberOfStrings <= 2:
         self.displayStringOnLine(self, self.LCD_LINE1, displayStrings[0])
         if numberOfStrings == 1:
@@ -99,10 +103,13 @@ class KitronikText32:
          self.displayStringOnLine(self, self.LCD_LINE1, displayStrings[textLoop])
          self.displayStringOnLine(self, self.LCD_LINE2, displayStrings[textLoop + 1])
          sleep(2000)
+         
+text32 = KitronikText32
 
 while True:
-    text32 = KitronikText32
     if button_a.is_pressed():
+     sleep(500)
      text32.showString(text32, 'Hello World! :) I am the :VIEW Text32')
     if button_b.is_pressed():
+     sleep(500)
      text32.clearScreen(text32)
